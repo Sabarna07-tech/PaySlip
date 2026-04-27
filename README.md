@@ -1,6 +1,18 @@
 # PaySlip — Mini Payroll Calculator
 
-Instant salary calculator with PDF payslips for small businesses. Chrome Extension built with React 18, TypeScript, Tailwind CSS, and Vite (Manifest V3).
+Instant salary calculator with PDF payslips for small businesses. A lightweight Chrome Extension built with React 18, TypeScript, Tailwind CSS, and Vite (Manifest V3).
+
+## ✨ Features
+
+- **Comprehensive Payroll Math**: Automatically calculates Gross Earnings and Net Pay by factoring in Basic Salary, HRA, Conveyance, Medical, Special Allowances, Overtime, and Bonuses.
+- **Statutory Deductions**: Built-in logic for PF (12% of Basic), ESI (0.75% if Gross ≤ ₹21k), TDS, and pro-rata unpaid leave deductions.
+- **Professional PDF Generation**: Instantly download clean, A4 portrait PDF payslips.
+- **Company Branding (Pro)**: Customize your PDFs with your own Company Name and Address.
+- **Employee Templates**: Save common employee configurations (salaries, allowances, statutory toggles) and load them with a single click to generate payslips in seconds.
+- **History Panel**: Automatically saves your most recent payslips directly to your local browser storage for quick retrieval and re-downloading.
+- **Freemium Quota System**: Generate up to 2 free payslips per month.
+- **PaySlip Pro**: Upgrade via our built-in Lemon Squeezy integration to unlock unlimited payslips and custom PDF branding.
+- **Local-first Privacy**: All your sensitive payroll data stays exactly where it belongs—locally in your browser. The only external request made is to verify a PaySlip Pro license key.
 
 ---
 
