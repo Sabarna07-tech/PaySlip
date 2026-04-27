@@ -3,6 +3,7 @@ import type { Employee, Payslip } from "@/types";
 import { calculatePayslip } from "@/utils/payroll";
 import { getTemplates, saveTemplate, type EmployeeTemplate } from "@/utils/storage";
 import { calculateEstimatedTDS } from "@/utils/taxCalculator";
+import { getSettings } from "@/utils/settings";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -175,8 +176,9 @@ export default function EmployeeForm({ onGenerate }: Props) {
     setSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const handleCalculate = () => {
-    const result = calculatePayslip(emp);
+  const handleCalculate = async () => {
+    const settings = await getSettings();
+    const result = calculatePayslip(emp, settings.payrollRules);
     onGenerate(result);
   };
 

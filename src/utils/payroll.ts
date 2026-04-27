@@ -1,6 +1,5 @@
-import type { Employee, Earnings, Deductions, Payslip } from "@/types";
-
-const WORKING_DAYS = 26;
+import type { Employee, Earnings, Deductions, Payslip, PayrollRules } from "@/types";
+import { DEFAULT_PAYROLL_RULES } from "@/utils/settings";
 
 /**
  * Formats a number as Indian Rupees with lakh/crore grouping.
@@ -20,7 +19,7 @@ export function formatINR(n: number): string {
  * Pure, synchronous payroll calculation.
  * Computes earnings, deductions, and net pay from an Employee record.
  */
-export function calculatePayslip(emp: Employee): Payslip {
+export function calculatePayslip(emp: Employee, rules: PayrollRules = DEFAULT_PAYROLL_RULES): Payslip {
   // ── Earnings ──────────────────────────────────────────────
   const basic = emp.basicSalary || 0;
   const hra = emp.hra || 0;
@@ -50,24 +49,20 @@ export function calculatePayslip(emp: Employee): Payslip {
 
   // ── Deductions ────────────────────────────────────────────
   const perDaySalary =
-    (basic + hra + conveyance + medical + special) / WORKING_DAYS;
+    (basic + hra + conveyance + medical + special) / rules.workingDays;
   const unpaidLeaveDeduction = perDaySalary * emp.unpaidLeaves;
 
-  // Max basic wage for PF is ₹15,000
-  const pfBasic = Math.min(basic, 15000);
-  const pf = emp.pfEmployer ? Math.round(pfBasic * 0.12) : 0;
+  const pfBasic = Math.min(basic, rules.pfBasicCeiling);
+  const pf = emp.pfEmployer ? Math.round(pfBasic * rules.pfRate) : 0;
 
-  // ESI: Employee share is 0.75%. (Note: Employer share is 3.25%).
-  // Only deduct if gross earnings are <= ₹21,000.
   const esi =
-    emp.esiApplicable && grossEarnings <= 21000
-      ? Math.round(grossEarnings * 0.0075)
+    emp.esiApplicable && grossEarnings <= rules.esiGrossThreshold
+      ? Math.round(grossEarnings * rules.esiRate)
       : 0;
       
   const tds = emp.tds;
   
-  // Professional Tax stub
-  const pt = grossEarnings > 15000 ? 200 : 0;
+  const pt = grossEarnings > rules.professionalTaxThreshold ? rules.professionalTaxAmount : 0;
 
   const totalDeductions = pf + esi + tds + pt + unpaidLeaveDeduction;
 

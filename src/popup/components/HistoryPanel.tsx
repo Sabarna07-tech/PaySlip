@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import type { Payslip } from "@/types";
 import { getPayslips } from "@/utils/storage";
 import { formatINR } from "@/utils/payroll";
-import { generatePayslipPDF } from "@/utils/pdfGenerator";
 import SalaryBreakdown from "./SalaryBreakdown";
 
 export default function HistoryPanel() {
@@ -51,7 +50,10 @@ export default function HistoryPanel() {
     return (
       <SalaryBreakdown
         payslip={selected}
-        onDownload={async () => await generatePayslipPDF(selected)}
+        onDownload={async () => {
+          const { generatePayslipPDF } = await import("@/utils/pdfGenerator");
+          await generatePayslipPDF(selected);
+        }}
         onBack={() => setSelected(null)}
       />
     );

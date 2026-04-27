@@ -72,15 +72,16 @@
 
     <h2>Data Storage</h2>
     <p>
-      This extension stores salary and payslip data <strong>locally in your browser</strong>
-      using the <code>chrome.storage.local</code> API. All data remains on your device and is
-      never transmitted to any external server.
+      This extension stores salary, payslip, company settings, logo, and template data
+      <strong>locally in your browser</strong> using the <code>chrome.storage.local</code> API.
+      Payroll records are not uploaded to PaySlip servers.
     </p>
 
     <h2>Data Collection</h2>
-    <p>This extension collects <strong>no personal data whatsoever</strong>. Specifically:</p>
+    <p>This extension does not collect payroll data for analytics, advertising, or tracking. Specifically:</p>
     <ul>
-      <li>No data is sent to any server, API, or third-party service.</li>
+      <li>Payroll records, employee details, company settings, and generated payslip history stay in local browser storage.</li>
+      <li>If you enter a PaySlip Pro license key, that license key is sent to Lemon Squeezy over HTTPS only to validate your subscription status.</li>
       <li>No analytics or telemetry of any kind are used.</li>
       <li>No tracking pixels, cookies, or fingerprinting techniques are employed.</li>
       <li>No user accounts or sign-ins are required.</li>
@@ -88,14 +89,21 @@
 
     <h2>Permissions</h2>
     <p>
-      The only permission requested is <code>storage</code>, which is used exclusively to
-      save your recent payslip history locally so it persists between popup sessions.
+      The extension requests <code>storage</code> to save local payslip history, templates,
+      company settings, and license status. It also declares access to
+      <code>https://api.lemonsqueezy.com/*</code> so license keys can be validated.
     </p>
 
     <h2>Data Deletion</h2>
     <p>
-      You can clear all stored payslip data at any time from within the extension.
-      Uninstalling the extension will also remove all locally stored data.
+      You can export, restore, or clear stored payslip history and templates from the
+      extension Settings screen. Uninstalling the extension will also remove locally stored data.
+    </p>
+
+    <h2>Limited Use</h2>
+    <p>
+      The use of information received from Chrome APIs will adhere to the Chrome Web Store
+      User Data Policy, including the Limited Use requirements.
     </p>
 
     <hr class="divider" />

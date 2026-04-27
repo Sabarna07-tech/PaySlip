@@ -60,3 +60,14 @@ export interface Payslip {
   netPay: number;
   generatedAt: string;
 }
+
+export interface PayrollRules {
+  workingDays: number;
+  pfBasicCeiling: number;
+  pfRate: number;
+  esiGrossThreshold: number;
+  esiRate: number;
+  professionalTaxThreshold: number;
+  professionalTaxAmount: number;
+  taxYear: string;
+}

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Payslip } from "@/types";
 import { savePayslip } from "@/utils/storage";
-import { generatePayslipPDF } from "@/utils/pdfGenerator";
 import EmployeeForm from "./components/EmployeeForm";
 import SalaryBreakdown from "./components/SalaryBreakdown";
 import HistoryPanel from "./components/HistoryPanel";
@@ -34,13 +33,14 @@ export default function App() {
       setShowUpgradeModal(true);
     } else {
       await incrementQuota();
-      savePayslip(payslip).catch(() => {});
+      savePayslip(payslip, settings.historyLimit).catch(() => {});
       setPreviewPayslip(payslip);
     }
   };
 
   const handleDownload = async () => {
     if (previewPayslip) {
+      const { generatePayslipPDF } = await import("@/utils/pdfGenerator");
       await generatePayslipPDF(previewPayslip);
     }
   };
@@ -50,7 +50,7 @@ export default function App() {
   };
 
   const handleModalActivated = (payslip: Payslip) => {
-    savePayslip(payslip).catch(() => {});
+    getSettings().then((settings) => savePayslip(payslip, settings.historyLimit)).catch(() => {});
     setPreviewPayslip(payslip);
   };
 
