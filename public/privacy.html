@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — PaySlip</title>
+  <style>
+    :root {
+      --primary: #5B5BD6;
+      --bg: #FAFAF9;
+      --text: #27272A;
+      --muted: #71717A;
+      --border: #E4E3DF;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 3rem 1.5rem;
+    }
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    p, ul {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    ul {
+      padding-left: 1.25rem;
+    }
+    li {
+      margin-bottom: 0.35rem;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    .footer {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">PaySlip — Mini Payroll Calculator</p>
+
+    <h2>Data Storage</h2>
+    <p>
+      This extension stores salary and payslip data <strong>locally in your browser</strong>
+      using the <code>chrome.storage.local</code> API. All data remains on your device and is
+      never transmitted to any external server.
+    </p>
+
+    <h2>Data Collection</h2>
+    <p>This extension collects <strong>no personal data whatsoever</strong>. Specifically:</p>
+    <ul>
+      <li>No data is sent to any server, API, or third-party service.</li>
+      <li>No analytics or telemetry of any kind are used.</li>
+      <li>No tracking pixels, cookies, or fingerprinting techniques are employed.</li>
+      <li>No user accounts or sign-ins are required.</li>
+    </ul>
+
+    <h2>Permissions</h2>
+    <p>
+      The only permission requested is <code>storage</code>, which is used exclusively to
+      save your recent payslip history locally so it persists between popup sessions.
+    </p>
+
+    <h2>Data Deletion</h2>
+    <p>
+      You can clear all stored payslip data at any time from within the extension.
+      Uninstalling the extension will also remove all locally stored data.
+    </p>
+
+    <hr class="divider" />
+
+    <h2>Changes to This Policy</h2>
+    <p>
+      If this privacy policy is ever updated, the changes will be reflected on this page
+      with an updated effective date.
+    </p>
+
+    <p class="footer">
+      Effective date: April 2026 &middot; PaySlip v1.0.0
+    </p>
+  </div>
+</body>
+</html>
