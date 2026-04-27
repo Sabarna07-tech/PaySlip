@@ -1,5 +1,17 @@
+export interface CustomAllowance {
+  name: string;
+  amount: number;
+}
+
 export interface Employee {
   name: string;
+  pan?: string;
+  uan?: string;
+  department?: string;
+  designation?: string;
+  bankAccount?: string;
+  lta?: number;
+  customAllowances?: CustomAllowance[];
   basicSalary: number;
   hra: number;
   conveyance: number;
@@ -12,6 +24,7 @@ export interface Employee {
   overtimeHours: number;
   overtimeRate: number;
   bonus: number;
+  taxRegime?: "old" | "new";
   tds: number;
   month: string;
   year: number;
@@ -21,6 +34,7 @@ export interface Deductions {
   pf: number;
   esi: number;
   tds: number;
+  pt: number;
   unpaidLeaveDeduction: number;
   total: number;
 }
@@ -31,6 +45,8 @@ export interface Earnings {
   conveyance: number;
   medical: number;
   special: number;
+  lta: number;
+  customAllowancesTotal: number;
   overtimePay: number;
   bonus: number;
   total: number;

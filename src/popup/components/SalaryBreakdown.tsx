@@ -22,6 +22,7 @@ export default function SalaryBreakdown({ payslip, onDownload, onBack }: Props) 
     ["Provident Fund", payslip.deductions.pf],
     ["ESI", payslip.deductions.esi],
     ["TDS", payslip.deductions.tds],
+    ["Professional Tax", payslip.deductions.pt],
     ["Unpaid Leave", payslip.deductions.unpaidLeaveDeduction],
   ] as [string, number][]).filter(([, v]) => v !== 0);
 

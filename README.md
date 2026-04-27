@@ -4,15 +4,31 @@ Instant salary calculator with PDF payslips for small businesses. A lightweight 
 
 ## ✨ Features
 
-- **Comprehensive Payroll Math**: Automatically calculates Gross Earnings and Net Pay by factoring in Basic Salary, HRA, Conveyance, Medical, Special Allowances, Overtime, and Bonuses.
-- **Statutory Deductions**: Built-in logic for PF (12% of Basic), ESI (0.75% if Gross ≤ ₹21k), TDS, and pro-rata unpaid leave deductions.
-- **Professional PDF Generation**: Instantly download clean, A4 portrait PDF payslips.
-- **Company Branding (Pro)**: Customize your PDFs with your own Company Name and Address.
-- **Employee Templates**: Save common employee configurations (salaries, allowances, statutory toggles) and load them with a single click to generate payslips in seconds.
-- **History Panel**: Automatically saves your most recent payslips directly to your local browser storage for quick retrieval and re-downloading.
-- **Freemium Quota System**: Generate up to 2 free payslips per month.
-- **PaySlip Pro**: Upgrade via our built-in Lemon Squeezy integration to unlock unlimited payslips and custom PDF branding.
-- **Local-first Privacy**: All your sensitive payroll data stays exactly where it belongs—locally in your browser. The only external request made is to verify a PaySlip Pro license key.
+### Payroll Engine
+- **Comprehensive Payroll Math**: Calculates Gross Earnings and Net Pay from Basic Salary, HRA, Conveyance, Medical, Special Allowance, LTA, Custom Allowances, Overtime, and Bonuses.
+- **Statutory Deductions**: PF (12% of Basic, capped at ₹15,000 ceiling), ESI (0.75% employee share if Gross ≤ ₹21k), Professional Tax (₹200 flat if Gross > ₹15k), TDS, and pro-rata unpaid leave deductions.
+- **Auto-Calculate TDS**: One-click TDS estimation engine using the 2025/2026 Indian tax slabs for both Old and New Tax Regimes, including Section 87A rebates and 4% Health & Education Cess.
+- **Strict Input Validation**: No leading zeros, no negative values — all numeric fields are sanitized at entry.
+
+### Employee Data
+- **Enterprise Data Model**: Supports PAN, UAN, Department, Designation, Bank Account, and LTA fields per employee.
+- **Custom Allowances**: Define any number of custom allowance line items per employee.
+- **Employee Templates**: Save and load complete employee configurations with a single click.
+
+### Output & Sharing
+- **Professional PDF Generation**: Clean A4 portrait PDF payslips with a two-column employee metadata grid (Name, Designation, Department, Bank A/C, Period, PAN, UAN).
+- **Company Branding (Pro)**: Upload a company logo and set Company Name & Address — all rendered on the PDF header.
+- **Dynamic Allowances in PDF**: Custom allowances are automatically listed as individual rows in the Earnings column.
+
+### Data Management
+- **History Panel**: Searchable, grouped by month/year, with a mini-dashboard showing Total Payslips and Total Net Pay Disbursed.
+- **Bulk CSV Import**: Upload a `.csv` file (columns: Name, Basic, HRA, Conveyance, PAN, Department) to generate payslips in bulk.
+- **JSON Data Export**: One-click backup of all payslips and templates as a timestamped JSON file.
+
+### Monetization
+- **Freemium Quota**: 2 free payslips per month, auto-resets monthly.
+- **PaySlip Pro**: Lemon Squeezy license key integration for unlimited payslips and PDF branding. 24-hour validation caching.
+- **Local-first Privacy**: All payroll data stays in your browser. The only external request is license key verification.
 
 ---
 

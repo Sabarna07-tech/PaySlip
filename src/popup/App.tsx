@@ -7,10 +7,11 @@ import SalaryBreakdown from "./components/SalaryBreakdown";
 import HistoryPanel from "./components/HistoryPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import UpgradeModal from "./components/UpgradeModal";
+import BulkImport from "./components/BulkImport";
 import { getSettings } from "@/utils/settings";
 import { isOverLimit, incrementQuota } from "@/utils/quota";
 
-type Tab = "calculator" | "history" | "settings";
+type Tab = "calculator" | "history" | "import" | "settings";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("calculator");
@@ -57,7 +58,7 @@ export default function App() {
     <div className="w-[380px] max-h-[580px] overflow-y-auto bg-white relative">
       <div className="sticky top-0 z-10 bg-white border-b border-border flex">
         <div
-          className={`flex-1 text-center py-3 text-sm font-semibold cursor-pointer transition-colors ${
+          className={`flex-1 text-center py-3 text-xs font-semibold cursor-pointer transition-colors ${
             activeTab === "calculator"
               ? "text-primary border-b-2 border-primary"
               : "text-gray-400 hover:text-gray-600"
@@ -67,10 +68,10 @@ export default function App() {
             setPreviewPayslip(null);
           }}
         >
-          💰 Calculator
+          💰 Calc
         </div>
         <div
-          className={`flex-1 text-center py-3 text-sm font-semibold cursor-pointer transition-colors ${
+          className={`flex-1 text-center py-3 text-xs font-semibold cursor-pointer transition-colors ${
             activeTab === "history"
               ? "text-primary border-b-2 border-primary"
               : "text-gray-400 hover:text-gray-600"
@@ -80,10 +81,23 @@ export default function App() {
             setPreviewPayslip(null);
           }}
         >
-          📋 History
+          📋 Hist
         </div>
         <div
-          className={`flex-1 text-center py-3 text-sm font-semibold cursor-pointer transition-colors ${
+          className={`flex-1 text-center py-3 text-xs font-semibold cursor-pointer transition-colors ${
+            activeTab === "import"
+              ? "text-primary border-b-2 border-primary"
+              : "text-gray-400 hover:text-gray-600"
+          }`}
+          onClick={() => {
+            setActiveTab("import");
+            setPreviewPayslip(null);
+          }}
+        >
+          📥 Import
+        </div>
+        <div
+          className={`flex-1 text-center py-3 text-xs font-semibold cursor-pointer transition-colors ${
             activeTab === "settings"
               ? "text-primary border-b-2 border-primary"
               : "text-gray-400 hover:text-gray-600"
@@ -93,7 +107,7 @@ export default function App() {
             setPreviewPayslip(null);
           }}
         >
-          ⚙ Settings
+          ⚙ Sett
         </div>
       </div>
 
@@ -115,6 +129,8 @@ export default function App() {
         <EmployeeForm onGenerate={handlePayslipGenerated} />
       ) : activeTab === "history" ? (
         <HistoryPanel />
+      ) : activeTab === "import" ? (
+        <BulkImport />
       ) : (
         <SettingsPanel />
       )}

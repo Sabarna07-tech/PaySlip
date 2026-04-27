@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { Employee, Payslip } from "@/types";
 import { calculatePayslip } from "@/utils/payroll";
 import { getTemplates, saveTemplate, type EmployeeTemplate } from "@/utils/storage";
+import { calculateEstimatedTDS } from "@/utils/taxCalculator";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -12,6 +13,13 @@ const now = new Date();
 
 const defaultEmployee: Employee = {
   name: "",
+  pan: "",
+  uan: "",
+  department: "",
+  designation: "",
+  bankAccount: "",
+  lta: 0,
+  customAllowances: [],
   basicSalary: 0,
   hra: 0,
   conveyance: 0,
@@ -25,6 +33,7 @@ const defaultEmployee: Employee = {
   overtimeRate: 0,
   bonus: 0,
   tds: 0,
+  taxRegime: "new",
   month: MONTHS[now.getMonth()],
   year: now.getFullYear(),
 };
@@ -85,17 +94,21 @@ function Field({
   onChange: (v: string) => void;
   type?: "text" | "number";
 }) {
+  // Show empty string instead of 0 so user doesn't get a leading zero
+  const displayValue = type === "number" && (value === 0 || value === "0") ? "" : value;
+
   return (
     <div>
       <div className="text-[11px] text-gray-500 mb-0.5">{label}</div>
       <input
         type={type}
-        value={value}
+        value={displayValue}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-2.5 py-1.5 text-sm border border-border rounded-md bg-white
                    focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
                    transition-colors placeholder:text-gray-300"
-        placeholder={type === "text" ? "Enter name" : "0"}
+        placeholder={type === "text" ? "Enter value" : "0"}
+        {...(type === "number" ? { min: 0 } : {})}
       />
     </div>
   );
@@ -137,10 +150,11 @@ export default function EmployeeForm({ onGenerate }: Props) {
   const [templateSaved, setTemplateSaved] = useState(false);
   const [sections, setSections] = useState({
     info: true,
+    identity: false,
     earnings: true,
-    leaves: true,
-    extras: true,
-    toggles: true,
+    leaves: false,
+    extras: false,
+    toggles: false,
   });
 
   useEffect(() => {
@@ -152,7 +166,9 @@ export default function EmployeeForm({ onGenerate }: Props) {
   };
 
   const numChange = (key: keyof Employee) => (v: string) => {
-    update(key, (parseFloat(v) || 0) as Employee[typeof key]);
+    const parsed = parseFloat(v);
+    const clamped = Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
+    update(key, clamped as Employee[typeof key]);
   };
 
   const toggle = (section: keyof typeof sections) => {
@@ -169,7 +185,12 @@ export default function EmployeeForm({ onGenerate }: Props) {
     if (!tId) return;
     const t = templates.find(temp => temp.id === tId);
     if (t) {
-      setEmp(prev => ({ ...t.employee, month: prev.month, year: prev.year }));
+      setEmp(prev => ({ 
+        ...defaultEmployee, // ensure defaults for older templates
+        ...t.employee, 
+        month: prev.month, 
+        year: prev.year 
+      }));
     }
   };
 
@@ -179,6 +200,13 @@ export default function EmployeeForm({ onGenerate }: Props) {
       name: emp.name || "Unnamed",
       employee: {
         name: emp.name,
+        pan: emp.pan,
+        uan: emp.uan,
+        department: emp.department,
+        designation: emp.designation,
+        bankAccount: emp.bankAccount,
+        lta: emp.lta,
+        customAllowances: emp.customAllowances,
         basicSalary: emp.basicSalary,
         hra: emp.hra,
         conveyance: emp.conveyance,
@@ -191,6 +219,7 @@ export default function EmployeeForm({ onGenerate }: Props) {
         overtimeHours: emp.overtimeHours,
         overtimeRate: emp.overtimeRate,
         bonus: emp.bonus,
+        taxRegime: emp.taxRegime,
         tds: emp.tds
       }
     };
@@ -239,14 +268,25 @@ export default function EmployeeForm({ onGenerate }: Props) {
         </div>
       </Section>
 
+      <Section title="Identity & Role" open={sections.identity} onToggle={() => toggle("identity")}>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="PAN" value={emp.pan || ""} onChange={(v) => update("pan", v)} type="text" />
+          <Field label="UAN" value={emp.uan || ""} onChange={(v) => update("uan", v)} type="text" />
+          <Field label="Department" value={emp.department || ""} onChange={(v) => update("department", v)} type="text" />
+          <Field label="Designation" value={emp.designation || ""} onChange={(v) => update("designation", v)} type="text" />
+        </div>
+        <Field label="Bank Account" value={emp.bankAccount || ""} onChange={(v) => update("bankAccount", v)} type="text" />
+      </Section>
+
       <Section title="Earnings" open={sections.earnings} onToggle={() => toggle("earnings")}>
         <div className="grid grid-cols-2 gap-2">
           <Field label="Basic Salary" value={emp.basicSalary} onChange={numChange("basicSalary")} />
           <Field label="HRA" value={emp.hra} onChange={numChange("hra")} />
           <Field label="Conveyance" value={emp.conveyance} onChange={numChange("conveyance")} />
           <Field label="Medical" value={emp.medical} onChange={numChange("medical")} />
+          <Field label="LTA" value={emp.lta || 0} onChange={numChange("lta")} />
+          <Field label="Special Allowance" value={emp.special} onChange={numChange("special")} />
         </div>
-        <Field label="Special Allowance" value={emp.special} onChange={numChange("special")} />
       </Section>
 
       <Section title="Leaves & Overtime" open={sections.leaves} onToggle={() => toggle("leaves")}>
@@ -259,13 +299,29 @@ export default function EmployeeForm({ onGenerate }: Props) {
       </Section>
 
       <Section title="Extras" open={sections.extras} onToggle={() => toggle("extras")}>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <Field label="Bonus" value={emp.bonus} onChange={numChange("bonus")} />
           <Field label="TDS (manual)" value={emp.tds} onChange={numChange("tds")} />
         </div>
+        <button
+          onClick={() => {
+            const grossEarnings = 
+              (emp.basicSalary || 0) + (emp.hra || 0) + (emp.conveyance || 0) + 
+              (emp.medical || 0) + (emp.special || 0) + (emp.lta || 0) + 
+              (emp.customAllowances || []).reduce((acc, curr) => acc + curr.amount, 0) + 
+              ((emp.overtimeHours || 0) * (emp.overtimeRate || 0)) + (emp.bonus || 0);
+              
+            const estimatedTDS = calculateEstimatedTDS(grossEarnings, emp.taxRegime || "new");
+            update("tds", estimatedTDS);
+          }}
+          className="w-full py-1.5 text-[11px] font-bold text-primary bg-primary/10 rounded border border-primary/20 hover:bg-primary/20 transition-colors"
+        >
+          ✨ Auto-Calculate TDS
+        </button>
       </Section>
 
       <Section title="Statutory" open={sections.toggles} onToggle={() => toggle("toggles")}>
+        <Toggle label="New Tax Regime" checked={emp.taxRegime === "new"} onChange={(v) => update("taxRegime", v ? "new" : "old")} />
         <Toggle label="PF (12% of Basic)" checked={emp.pfEmployer} onChange={(v) => update("pfEmployer", v)} />
         <Toggle label="ESI (0.75% if ≤ ₹21k)" checked={emp.esiApplicable} onChange={(v) => update("esiApplicable", v)} />
       </Section>

@@ -19,24 +19,44 @@ export async function generatePayslipPDF(p: Payslip): Promise<void> {
   let y = MARGIN;
 
   // ── Header ──────────────────────────────────────────────
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text(settings.companyName || "Your Company Name", PAGE_WIDTH / 2, y, { align: "center" });
-  y += 8;
+  if (settings.companyLogoBase64) {
+    // Add logo to top left
+    doc.addImage(settings.companyLogoBase64, MARGIN, y, 20, 20);
+    
+    // Adjust text to be left-aligned next to the logo
+    const headerX = MARGIN + 25;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(settings.companyName || "Your Company Name", headerX, y + 8, { align: "left" });
+    
+    if (settings.companyAddress) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(settings.companyAddress, headerX, y + 14, { align: "left" });
+    }
+    y += 28;
+  } else {
+    // Standard center-aligned header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(settings.companyName || "Your Company Name", PAGE_WIDTH / 2, y, { align: "center" });
+    y += 8;
 
-  if (settings.companyAddress) {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text(settings.companyAddress, PAGE_WIDTH / 2, y, { align: "center" });
-    y += 6;
+    if (settings.companyAddress) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(settings.companyAddress, PAGE_WIDTH / 2, y, { align: "center" });
+      y += 6;
+    }
   }
 
   doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica", "bold");
   doc.text("SALARY SLIP", PAGE_WIDTH / 2, y, { align: "center" });
   y += 7;
 
   doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
   doc.text(
     `${p.employee.month} ${p.employee.year}`,
     PAGE_WIDTH / 2,
@@ -47,23 +67,36 @@ export async function generatePayslipPDF(p: Payslip): Promise<void> {
 
   // ── Employee Info Box ───────────────────────────────────
   doc.setFillColor(245, 245, 244); // light gray
-  doc.roundedRect(MARGIN, y, CONTENT_WIDTH, 18, 2, 2, "F");
+  doc.roundedRect(MARGIN, y, CONTENT_WIDTH, 34, 2, 2, "F");
 
+  doc.setFontSize(9);
+  
+  // Left Column
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
   doc.text("Employee:", MARGIN + 4, y + 7);
+  doc.text("Designation:", MARGIN + 4, y + 14);
+  doc.text("Department:", MARGIN + 4, y + 21);
+  doc.text("Bank A/C:", MARGIN + 4, y + 28);
+  
   doc.setFont("helvetica", "normal");
-  doc.text(p.employee.name, MARGIN + 30, y + 7);
+  doc.text(p.employee.name || "-", MARGIN + 28, y + 7);
+  doc.text(p.employee.designation || "-", MARGIN + 28, y + 14);
+  doc.text(p.employee.department || "-", MARGIN + 28, y + 21);
+  doc.text(p.employee.bankAccount || "-", MARGIN + 28, y + 28);
 
+  // Right Column
+  const rightColX = MARGIN + CONTENT_WIDTH / 2;
   doc.setFont("helvetica", "bold");
-  doc.text("Period:", MARGIN + 4, y + 13);
+  doc.text("Period:", rightColX, y + 7);
+  doc.text("PAN:", rightColX, y + 14);
+  doc.text("UAN:", rightColX, y + 21);
+  
   doc.setFont("helvetica", "normal");
-  doc.text(
-    `${p.employee.month} ${p.employee.year}`,
-    MARGIN + 30,
-    y + 13
-  );
-  y += 24;
+  doc.text(`${p.employee.month} ${p.employee.year}`, rightColX + 16, y + 7);
+  doc.text(p.employee.pan || "-", rightColX + 16, y + 14);
+  doc.text(p.employee.uan || "-", rightColX + 16, y + 21);
+  
+  y += 40;
 
   // ── Column Headers ──────────────────────────────────────
   doc.setFillColor(91, 91, 214); // primary #5B5BD6
@@ -85,6 +118,8 @@ export async function generatePayslipPDF(p: Payslip): Promise<void> {
     ["Conveyance", p.earnings.conveyance],
     ["Medical", p.earnings.medical],
     ["Special Allowance", p.earnings.special],
+    ["LTA", p.earnings.lta || 0],
+    ...((p.employee.customAllowances || []).map(ca => [ca.name, ca.amount] as [string, number])),
     ["Overtime Pay", p.earnings.overtimePay],
     ["Bonus", p.earnings.bonus],
   ];
@@ -94,6 +129,7 @@ export async function generatePayslipPDF(p: Payslip): Promise<void> {
     ["Provident Fund", p.deductions.pf],
     ["ESI", p.deductions.esi],
     ["TDS", p.deductions.tds],
+    ["Professional Tax", p.deductions.pt],
     ["Unpaid Leave", p.deductions.unpaidLeaveDeduction],
   ];
 
