@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Employee, Payslip } from "@/types";
 import { calculatePayslip } from "@/utils/payroll";
+import { getTemplates, saveTemplate, type EmployeeTemplate } from "@/utils/storage";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -132,6 +133,8 @@ function Toggle({
 
 export default function EmployeeForm({ onGenerate }: Props) {
   const [emp, setEmp] = useState<Employee>({ ...defaultEmployee });
+  const [templates, setTemplates] = useState<EmployeeTemplate[]>([]);
+  const [templateSaved, setTemplateSaved] = useState(false);
   const [sections, setSections] = useState({
     info: true,
     earnings: true,
@@ -139,6 +142,10 @@ export default function EmployeeForm({ onGenerate }: Props) {
     extras: true,
     toggles: true,
   });
+
+  useEffect(() => {
+    getTemplates().then(setTemplates);
+  }, []);
 
   const update = <K extends keyof Employee>(key: K, value: Employee[K]) => {
     setEmp((prev) => ({ ...prev, [key]: value }));
@@ -157,8 +164,59 @@ export default function EmployeeForm({ onGenerate }: Props) {
     onGenerate(result);
   };
 
+  const handleLoadTemplate = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const tId = e.target.value;
+    if (!tId) return;
+    const t = templates.find(temp => temp.id === tId);
+    if (t) {
+      setEmp(prev => ({ ...t.employee, month: prev.month, year: prev.year }));
+    }
+  };
+
+  const handleSaveTemplate = async () => {
+    const newTemplate: EmployeeTemplate = {
+      id: crypto.randomUUID(),
+      name: emp.name || "Unnamed",
+      employee: {
+        name: emp.name,
+        basicSalary: emp.basicSalary,
+        hra: emp.hra,
+        conveyance: emp.conveyance,
+        medical: emp.medical,
+        special: emp.special,
+        pfEmployer: emp.pfEmployer,
+        esiApplicable: emp.esiApplicable,
+        paidLeaves: emp.paidLeaves,
+        unpaidLeaves: emp.unpaidLeaves,
+        overtimeHours: emp.overtimeHours,
+        overtimeRate: emp.overtimeRate,
+        bonus: emp.bonus,
+        tds: emp.tds
+      }
+    };
+    await saveTemplate(newTemplate);
+    setTemplateSaved(true);
+    getTemplates().then(setTemplates);
+    setTimeout(() => setTemplateSaved(false), 1500);
+  };
+
   return (
     <div className="p-3 space-y-2">
+      {templates.length > 0 && (
+        <div className="mb-2">
+          <select 
+            onChange={handleLoadTemplate} 
+            className="w-full px-2.5 py-1.5 text-sm border border-border rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
+            defaultValue=""
+          >
+            <option value="" disabled>Load template...</option>
+            {templates.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <Section title="Employee Info" open={sections.info} onToggle={() => toggle("info")}>
         <Field label="Full Name" value={emp.name} onChange={(v) => update("name", v)} type="text" />
         <div className="grid grid-cols-2 gap-2">
@@ -212,12 +270,20 @@ export default function EmployeeForm({ onGenerate }: Props) {
         <Toggle label="ESI (0.75% if ≤ ₹21k)" checked={emp.esiApplicable} onChange={(v) => update("esiApplicable", v)} />
       </Section>
 
-      <div
-        className="w-full text-center bg-primary text-white rounded-lg py-2.5 text-sm font-semibold
-                   cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all select-none"
-        onClick={handleCalculate}
-      >
-        Calculate Payslip
+      <div className="flex gap-2 items-center pt-1">
+        <div
+          className="flex-[2] text-center bg-primary text-white rounded-lg py-2.5 text-sm font-semibold
+                     cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all select-none"
+          onClick={handleCalculate}
+        >
+          Calculate Payslip
+        </div>
+        <div 
+          className="flex-1 text-center bg-surface border border-border text-gray-700 rounded-lg py-2.5 text-sm font-semibold cursor-pointer hover:bg-gray-50 active:scale-[0.98] transition-all select-none"
+          onClick={handleSaveTemplate}
+        >
+          {templateSaved ? <span className="text-success">Saved ✓</span> : "Save as template"}
+        </div>
       </div>
     </div>
   );

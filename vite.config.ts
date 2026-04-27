@@ -18,4 +18,13 @@ export default defineConfig({
   build: {
     outDir: "dist",
   },
+  server: {
+    port: 5173,
+    strictPort: true,
+    cors: true,
+    origin: "http://localhost:5173",
+    hmr: {
+      port: 5173,
+    },
+  },
 });

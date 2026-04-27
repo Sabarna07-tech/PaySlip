@@ -1,7 +1,10 @@
-import type { Payslip } from "@/types";
+import type { Payslip, Employee } from "@/types";
 
 const STORAGE_KEY = "payslips";
 const MAX_PAYSLIPS = 10;
+const TEMPLATES_KEY = "templates";
+
+export type EmployeeTemplate = { id: string; name: string; employee: Omit<Employee, "month" | "year"> }
 
 /**
  * Saves a payslip to chrome.storage.local.
@@ -31,4 +34,23 @@ export async function getPayslips(): Promise<Payslip[]> {
  */
 export async function clearPayslips(): Promise<void> {
   await chrome.storage.local.remove(STORAGE_KEY);
+}
+
+export async function saveTemplate(t: EmployeeTemplate): Promise<void> {
+  const existing = await getTemplates();
+  // Filter out the existing template with same ID if updating
+  const updated = [...existing.filter(temp => temp.id !== t.id), t];
+  await chrome.storage.local.set({ [TEMPLATES_KEY]: updated });
+}
+
+export async function getTemplates(): Promise<EmployeeTemplate[]> {
+  const result = await chrome.storage.local.get(TEMPLATES_KEY);
+  const templates: EmployeeTemplate[] = result[TEMPLATES_KEY] ?? [];
+  return templates.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const existing = await getTemplates();
+  const updated = existing.filter(t => t.id !== id);
+  await chrome.storage.local.set({ [TEMPLATES_KEY]: updated });
 }

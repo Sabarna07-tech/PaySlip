@@ -21,7 +21,7 @@ export default function HistoryPanel() {
     return (
       <SalaryBreakdown
         payslip={selected}
-        onDownload={() => generatePayslipPDF(selected)}
+        onDownload={async () => await generatePayslipPDF(selected)}
         onBack={() => setSelected(null)}
       />
     );

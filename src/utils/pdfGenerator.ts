@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import type { Payslip } from "@/types";
 import { formatINR } from "@/utils/payroll";
+import { getSettings } from "@/utils/settings";
 
 const MARGIN = 20;
 const PAGE_WIDTH = 210; // A4 width in mm
@@ -11,7 +12,8 @@ const LINE_HEIGHT = 7;
 /**
  * Generates and triggers download of an A4 portrait PDF payslip.
  */
-export function generatePayslipPDF(p: Payslip): void {
+export async function generatePayslipPDF(p: Payslip): Promise<void> {
+  const settings = await getSettings();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
   let y = MARGIN;
@@ -19,8 +21,15 @@ export function generatePayslipPDF(p: Payslip): void {
   // ── Header ──────────────────────────────────────────────
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("Your Company Name", PAGE_WIDTH / 2, y, { align: "center" });
+  doc.text(settings.companyName || "Your Company Name", PAGE_WIDTH / 2, y, { align: "center" });
   y += 8;
+
+  if (settings.companyAddress) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(settings.companyAddress, PAGE_WIDTH / 2, y, { align: "center" });
+    y += 6;
+  }
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
