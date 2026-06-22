@@ -1,7 +1,12 @@
 node_modules/
 dist/
+dist-web/
 .env
 .DS_Store
 *.log
 vite.config.ts.timestamp-*.mjs
 payslip-v*.zip
+
+# Packed extension + signing key — never commit the private key
+*.crx
+*.pem

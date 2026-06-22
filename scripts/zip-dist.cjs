@@ -4,7 +4,9 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
 const dist = path.join(root, "dist");
-const zipPath = path.join(root, "payslip-v1.0.0.zip");
+const { version } = require(path.join(root, "package.json"));
+const zipName = `payslip-v${version}.zip`;
+const zipPath = path.join(root, zipName);
 
 if (!fs.existsSync(dist)) {
   throw new Error("dist folder not found. Run npm run build first.");
@@ -17,7 +19,9 @@ execFileSync(
   [
     "-NoProfile",
     "-Command",
-    "Compress-Archive -Path .\\dist\\* -DestinationPath .\\payslip-v1.0.0.zip -Force",
+    `Compress-Archive -Path .\\dist\\* -DestinationPath .\\${zipName} -Force`,
   ],
   { cwd: root, stdio: "inherit" }
 );
+
+console.log(`✓ Created ${zipName}`);

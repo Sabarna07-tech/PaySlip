@@ -153,10 +153,23 @@ export default function EmployeeForm({ onGenerate }: Props) {
     info: true,
     identity: false,
     earnings: true,
+    allowances: false,
     leaves: false,
     extras: false,
     toggles: false,
   });
+
+  const allowances = emp.customAllowances || [];
+
+  const addAllowance = () => update("customAllowances", [...allowances, { name: "", amount: 0 }]);
+  const updateAllowance = (index: number, field: "name" | "amount", value: string | number) => {
+    update(
+      "customAllowances",
+      allowances.map((a, i) => (i === index ? { ...a, [field]: value } : a))
+    );
+  };
+  const removeAllowance = (index: number) =>
+    update("customAllowances", allowances.filter((_, i) => i !== index));
 
   useEffect(() => {
     getTemplates().then(setTemplates);
@@ -289,6 +302,52 @@ export default function EmployeeForm({ onGenerate }: Props) {
           <Field label="LTA" value={emp.lta || 0} onChange={numChange("lta")} />
           <Field label="Special Allowance" value={emp.special} onChange={numChange("special")} />
         </div>
+      </Section>
+
+      <Section title="Custom Allowances" open={sections.allowances} onToggle={() => toggle("allowances")}>
+        {allowances.length === 0 && (
+          <p className="text-[11px] text-gray-400">
+            Add recurring line items like Internet, Phone, or Fuel. They appear on the payslip and PDF.
+          </p>
+        )}
+        {allowances.map((a, i) => (
+          <div key={i} className="flex gap-2 items-end">
+            <div className="flex-[2]">
+              <div className="text-[11px] text-gray-500 mb-0.5">Name</div>
+              <input
+                type="text"
+                value={a.name}
+                onChange={(e) => updateAllowance(i, "name", e.target.value)}
+                className="w-full px-2.5 py-1.5 text-sm border border-border rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                placeholder="e.g. Internet"
+              />
+            </div>
+            <div className="flex-1">
+              <div className="text-[11px] text-gray-500 mb-0.5">Amount</div>
+              <input
+                type="number"
+                min={0}
+                value={a.amount || ""}
+                onChange={(e) => updateAllowance(i, "amount", Math.max(0, Number(e.target.value) || 0))}
+                className="w-full px-2.5 py-1.5 text-sm border border-border rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                placeholder="0"
+              />
+            </div>
+            <button
+              onClick={() => removeAllowance(i)}
+              aria-label={`Remove allowance ${a.name || i + 1}`}
+              className="px-2 py-1.5 text-danger hover:bg-danger/10 rounded-md text-sm"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={addAllowance}
+          className="w-full py-1.5 text-[11px] font-bold text-primary bg-primary/10 rounded border border-primary/20 hover:bg-primary/20 transition-colors"
+        >
+          + Add allowance
+        </button>
       </Section>
 
       <Section title="Leaves & Overtime" open={sections.leaves} onToggle={() => toggle("leaves")}>

@@ -1,5 +1,6 @@
 import type { Payslip, Employee } from "@/types";
 import { DEFAULT_HISTORY_LIMIT } from "@/utils/settings";
+import { safeSet } from "@/utils/safeStorage";
 
 const STORAGE_KEY = "payslips";
 const TEMPLATES_KEY = "templates";
@@ -28,7 +29,7 @@ function sortPayslips(payslips: Payslip[]): Payslip[] {
 export async function savePayslip(p: Payslip, limit = DEFAULT_HISTORY_LIMIT): Promise<void> {
   const existing = await getPayslips();
   const updated = sortPayslips([p, ...existing]).slice(0, normalizeLimit(limit));
-  await chrome.storage.local.set({ [STORAGE_KEY]: updated });
+  await safeSet({ [STORAGE_KEY]: updated });
 }
 
 export async function savePayslipsBatch(payslips: Payslip[], limit = DEFAULT_HISTORY_LIMIT): Promise<number> {
@@ -36,12 +37,12 @@ export async function savePayslipsBatch(payslips: Payslip[], limit = DEFAULT_HIS
 
   const existing = await getPayslips();
   const updated = sortPayslips([...payslips, ...existing]).slice(0, normalizeLimit(limit));
-  await chrome.storage.local.set({ [STORAGE_KEY]: updated });
+  await safeSet({ [STORAGE_KEY]: updated });
   return updated.length;
 }
 
 export async function replacePayslips(payslips: Payslip[], limit = DEFAULT_HISTORY_LIMIT): Promise<void> {
-  await chrome.storage.local.set({
+  await safeSet({
     [STORAGE_KEY]: sortPayslips(payslips).slice(0, normalizeLimit(limit)),
   });
 }
@@ -67,7 +68,7 @@ export async function saveTemplate(t: EmployeeTemplate): Promise<void> {
   const existing = await getTemplates();
   // Filter out the existing template with same ID if updating
   const updated = [...existing.filter(temp => temp.id !== t.id), t];
-  await chrome.storage.local.set({ [TEMPLATES_KEY]: updated });
+  await safeSet({ [TEMPLATES_KEY]: updated });
 }
 
 export async function getTemplates(): Promise<EmployeeTemplate[]> {
@@ -79,7 +80,7 @@ export async function getTemplates(): Promise<EmployeeTemplate[]> {
 export async function deleteTemplate(id: string): Promise<void> {
   const existing = await getTemplates();
   const updated = existing.filter(t => t.id !== id);
-  await chrome.storage.local.set({ [TEMPLATES_KEY]: updated });
+  await safeSet({ [TEMPLATES_KEY]: updated });
 }
 
 export async function clearTemplates(): Promise<void> {
@@ -96,7 +97,7 @@ export async function restoreBackupData(data: BackupData, limit = DEFAULT_HISTOR
     throw new Error("Backup must include payslips and templates arrays.");
   }
 
-  await chrome.storage.local.set({
+  await safeSet({
     [STORAGE_KEY]: sortPayslips(data.payslips).slice(0, normalizeLimit(limit)),
     [TEMPLATES_KEY]: data.templates,
   });

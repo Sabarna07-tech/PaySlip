@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { commitCSVPreview, previewCSV, type CsvImportPreview } from "@/utils/csvParser";
 import { getSettings } from "@/utils/settings";
+import { consumeQuota } from "@/utils/quota";
+import { useUpgrade } from "../UpgradeContext";
 
 export default function BulkImport() {
+  const { promptUpgrade } = useUpgrade();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -39,13 +42,22 @@ export default function BulkImport() {
   };
 
   const handleCommit = async () => {
-    if (!preview || preview.errors.length > 0) return;
+    if (!preview || preview.errors.length > 0 || preview.rows.length === 0) return;
 
     setLoading(true);
     setError("");
     setMessage("");
 
     try {
+      // Importing N payslips consumes N from the monthly allowance (Pro = unlimited).
+      const decision = await consumeQuota(preview.rows.length);
+      if (!decision.allowed) {
+        promptUpgrade({
+          reason: `Importing ${preview.rows.length} payslips exceeds your ${decision.remaining} remaining this month.`,
+        });
+        return;
+      }
+
       const imported = await commitCSVPreview(preview, historyLimit);
       setMessage(`Imported ${imported} payslip${imported === 1 ? "" : "s"}. History keeps the latest ${historyLimit}.`);
       setPreview(null);

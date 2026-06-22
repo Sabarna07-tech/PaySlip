@@ -16,6 +16,20 @@ export function formatINR(n: number): string {
 }
 
 /**
+ * Currency for PDF output. jsPDF's built-in Helvetica has no ₹ (U+20B9) glyph,
+ * so the rupee sign renders as a blank/box. We use a plain "Rs." prefix with
+ * Indian lakh/crore digit grouping for reliable, professional PDFs.
+ * e.g. 123456 → "Rs. 1,23,456"
+ */
+export function formatINRPlain(n: number): string {
+  const grouped = new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.round(n));
+  return `Rs. ${grouped}`;
+}
+
+/**
  * Pure, synchronous payroll calculation.
  * Computes earnings, deductions, and net pay from an Employee record.
  */

@@ -3,12 +3,20 @@ import type { Payslip } from "@/types";
 import { getPayslips } from "@/utils/storage";
 import { formatINR } from "@/utils/payroll";
 import SalaryBreakdown from "./SalaryBreakdown";
+import AnnualReport from "./AnnualReport";
+import { isPro } from "@/utils/license";
+import { usePro } from "../usePro";
+import { useUpgrade } from "../UpgradeContext";
 
 export default function HistoryPanel() {
+  const { pro } = usePro();
+  const { promptUpgrade } = useUpgrade();
   const [payslips, setPayslips] = useState<Payslip[]>([]);
   const [selected, setSelected] = useState<Payslip | null>(null);
+  const [view, setView] = useState<"list" | "report">("list");
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     getPayslips()
@@ -46,6 +54,34 @@ export default function HistoryPanel() {
     return groups;
   }, [filteredPayslips]);
 
+  const handleExportZip = async () => {
+    if (filteredPayslips.length === 0 || exporting) return;
+    if (!(await isPro())) {
+      promptUpgrade({ reason: "Bulk ZIP export is a PaySlip Pro feature" });
+      return;
+    }
+    setExporting(true);
+    try {
+      const { generatePayslipsZip } = await import("@/utils/bulkExport");
+      const tag = searchQuery ? searchQuery.replace(/[^a-z0-9]+/gi, "_").toLowerCase() : "all";
+      await generatePayslipsZip(filteredPayslips, `payslips_${tag}.zip`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleOpenReport = async () => {
+    if (!(await isPro())) {
+      promptUpgrade({ reason: "Annual salary reports are a PaySlip Pro feature" });
+      return;
+    }
+    setView("report");
+  };
+
+  if (view === "report") {
+    return <AnnualReport payslips={payslips} onBack={() => setView("list")} />;
+  }
+
   if (selected) {
     return (
       <SalaryBreakdown
@@ -60,9 +96,7 @@ export default function HistoryPanel() {
   }
 
   if (loading) {
-    return (
-      <div className="p-8 text-center text-gray-400 text-sm">Loading…</div>
-    );
+    return <div className="p-8 text-center text-gray-400 text-sm">Loading…</div>;
   }
 
   if (payslips.length === 0) {
@@ -84,7 +118,7 @@ export default function HistoryPanel() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by name, department, or month..."
-          className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface 
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface
                      focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
                      transition-colors placeholder:text-gray-400"
         />
@@ -98,6 +132,23 @@ export default function HistoryPanel() {
             <div className="text-[10px] uppercase font-bold tracking-wide text-gray-500 mb-0.5">Total Disbursed</div>
             <div className="text-sm font-bold text-success">{formatINR(totalNetPay)}</div>
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={handleExportZip}
+            disabled={exporting || filteredPayslips.length === 0}
+            className="flex items-center justify-center gap-1 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-border rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+          >
+            {exporting ? "Zipping…" : "🗜 Export ZIP"}
+            {!pro && <span className="text-[9px]">🔒</span>}
+          </button>
+          <button
+            onClick={handleOpenReport}
+            className="flex items-center justify-center gap-1 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-border rounded-lg text-xs font-semibold transition-colors"
+          >
+            📊 Reports
+            {!pro && <span className="text-[9px]">🔒</span>}
+          </button>
         </div>
       </div>
 

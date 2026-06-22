@@ -1,4 +1,6 @@
 import type { PayrollRules } from "@/types";
+import type { PdfThemeId } from "@/config";
+import { safeSet } from "@/utils/safeStorage";
 
 export const DEFAULT_PAYROLL_RULES: PayrollRules = {
   workingDays: 26,
@@ -20,6 +22,7 @@ export interface AppSettings {
   companyLogoBase64?: string;
   historyLimit: number;
   payrollRules: PayrollRules;
+  pdfTheme: PdfThemeId;
 }
 
 const SETTINGS_KEY = "appSettings";
@@ -35,6 +38,7 @@ export function normalizeSettings(settings?: Partial<AppSettings>): AppSettings 
       ...DEFAULT_PAYROLL_RULES,
       ...(settings?.payrollRules ?? {}),
     },
+    pdfTheme: settings?.pdfTheme ?? "classic",
   };
 }
 
@@ -44,5 +48,5 @@ export async function getSettings(): Promise<AppSettings> {
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
-  await chrome.storage.local.set({ [SETTINGS_KEY]: normalizeSettings(settings) });
+  await safeSet({ [SETTINGS_KEY]: normalizeSettings(settings) });
 }

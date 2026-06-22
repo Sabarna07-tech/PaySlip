@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
 import type { Employee, PayrollRules } from "@/types";
-import { calculatePayslip } from "./payroll";
+import { calculatePayslip, formatINR, formatINRPlain } from "./payroll";
 import { DEFAULT_PAYROLL_RULES } from "./settings";
+
+describe("currency formatting", () => {
+  it("formatINR uses the ₹ symbol for on-screen display", () => {
+    expect(formatINR(123456)).toContain("₹");
+    expect(formatINR(123456)).toContain("1,23,456");
+  });
+
+  it("formatINRPlain avoids ₹ (unsupported in jsPDF) and uses Rs. + Indian grouping", () => {
+    expect(formatINRPlain(123456)).toBe("Rs. 1,23,456");
+    expect(formatINRPlain(123456)).not.toContain("₹");
+    expect(formatINRPlain(1000)).toBe("Rs. 1,000");
+  });
+});
 
 const employee: Employee = {
   name: "Asha Rao",

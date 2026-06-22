@@ -14,12 +14,15 @@ import {
   restoreBackupData,
 } from "@/utils/storage";
 import type { PayrollRules } from "@/types";
+import { LS_STORE_URL, PDF_THEMES } from "@/config";
+import { usePro } from "../usePro";
 
-const LS_URL = "https://payslip1.lemonsqueezy.com";
+const LS_URL = LS_STORE_URL;
 const MAX_LOGO_BYTES = 300 * 1024;
 const MAX_LOGO_DIMENSION = 1024;
 
 export default function SettingsPanel() {
+  const { pro, refresh: refreshPro } = usePro();
   const [settings, setSettings] = useState<AppSettings>({
     companyName: "",
     companyAddress: "",
@@ -27,6 +30,7 @@ export default function SettingsPanel() {
     companyLogoBase64: "",
     historyLimit: DEFAULT_HISTORY_LIMIT,
     payrollRules: DEFAULT_PAYROLL_RULES,
+    pdfTheme: "classic",
   });
   const [saved, setSaved] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -73,6 +77,7 @@ export default function SettingsPanel() {
     setLicenseStatus("verifying");
     const isValid = await validateLicense(settings.licenseKey);
     setLicenseStatus(isValid ? "valid" : "invalid");
+    if (isValid) refreshPro();
   };
 
   const handleExportData = async () => {
@@ -213,6 +218,29 @@ export default function SettingsPanel() {
           className="input-field"
           placeholder="e.g. 123 Business Rd"
         />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">
+          PDF Theme
+          {!pro && <span className="ml-1 text-[10px] text-primary font-bold">Pro themes 🔒</span>}
+        </label>
+        <select
+          value={settings.pdfTheme}
+          onChange={(e) => update("pdfTheme", e.target.value as AppSettings["pdfTheme"])}
+          className="input-field"
+        >
+          {PDF_THEMES.map((t) => (
+            <option key={t.id} value={t.id} disabled={t.pro && !pro}>
+              {t.label}{t.pro ? " (Pro)" : ""}{t.pro && !pro ? " 🔒" : ""}
+            </option>
+          ))}
+        </select>
+        {!pro && settings.pdfTheme !== "classic" && (
+          <p className="text-[10px] text-gray-400 mt-1">
+            Premium themes and your logo apply once PaySlip Pro is active; PDFs use the Classic theme until then.
+          </p>
+        )}
       </div>
 
       <div className="pt-2 border-t border-border">

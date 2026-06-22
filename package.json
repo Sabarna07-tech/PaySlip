@@ -1,23 +1,28 @@
 {
   "name": "payslip-mini-payroll-calculator",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "private": true,
-  "description": "Instant salary calculator with PDF payslips for small businesses.",
+  "description": "Indian salary & payslip calculator Chrome extension with PF/ESI/TDS, PDF payslips, bulk export and annual reports.",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:web": "vite --config vite.web.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "audit": "npm audit --omit=dev",
     "clean": "node scripts/clean.cjs",
     "build": "npm run typecheck && vite build",
+    "build:web": "npm run typecheck && vite build --config vite.web.config.ts",
+    "build:all": "npm run build && vite build --config vite.web.config.ts",
     "zip": "node scripts/zip-dist.cjs",
     "preflight": "npm run audit && npm run test && npm run build && npm run zip",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:web": "vite preview --config vite.web.config.ts"
   },
   "dependencies": {
     "date-fns": "^3.6.0",
     "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

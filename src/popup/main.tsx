@@ -31,6 +31,11 @@ if (typeof chrome === "undefined" || !chrome.storage) {
           persist();
           return Promise.resolve();
         },
+        remove: (keys: string | string[]) => {
+          for (const k of Array.isArray(keys) ? keys : [keys]) delete store[k];
+          persist();
+          return Promise.resolve();
+        },
       },
     },
     tabs: {

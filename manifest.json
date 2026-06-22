@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "PaySlip — Mini Payroll Calculator",
-  "version": "1.0.0",
-  "description": "Instant salary calculator with PDF payslips for small businesses.",
+  "name": "PaySlip — Indian Payroll & Salary Slip Calculator",
+  "version": "1.4.0",
+  "description": "Indian salary & payslip calculator — PF, ESI, TDS, professional PDF payslips, bulk export & annual reports. Private & local-first.",
+  "minimum_chrome_version": "100",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -17,5 +18,8 @@
     "128": "icons/icon-128.png"
   },
   "permissions": ["storage"],
-  "host_permissions": ["https://api.lemonsqueezy.com/*"]
+  "host_permissions": ["https://api.lemonsqueezy.com/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'self'"
+  }
 }

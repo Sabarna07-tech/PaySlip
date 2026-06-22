@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Payslip } from "@/types";
 import { formatINR } from "@/utils/payroll";
 
@@ -7,13 +8,38 @@ interface Props {
   onBack: () => void;
 }
 
+function buildSummary(p: Payslip): string {
+  return [
+    `SALARY SLIP — ${p.employee.name || "Employee"} (${p.employee.month} ${p.employee.year})`,
+    `Gross Earnings: ${formatINR(p.earnings.total)}`,
+    `Total Deductions: ${formatINR(p.deductions.total)}`,
+    `Net Pay: ${formatINR(p.netPay)}`,
+  ].join("\n");
+}
+
 export default function SalaryBreakdown({ payslip, onDownload, onBack }: Props) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(buildSummary(payslip));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — silently ignore */
+    }
+  };
+
   const earningsItems = ([
     ["Basic Salary", payslip.earnings.basic],
     ["HRA", payslip.earnings.hra],
     ["Conveyance", payslip.earnings.conveyance],
     ["Medical", payslip.earnings.medical],
     ["Special Allowance", payslip.earnings.special],
+    ["LTA", payslip.earnings.lta],
+    ...(payslip.employee.customAllowances || []).map(
+      (ca) => [ca.name || "Allowance", ca.amount] as [string, number]
+    ),
     ["Overtime Pay", payslip.earnings.overtimePay],
     ["Bonus", payslip.earnings.bonus],
   ] as [string, number][]).filter(([, v]) => v !== 0);
@@ -82,13 +108,21 @@ export default function SalaryBreakdown({ payslip, onDownload, onBack }: Props) 
         <span className="text-lg font-bold text-success">{formatINR(payslip.netPay)}</span>
       </div>
 
+      <div
+        className="text-center py-2.5 bg-primary text-white rounded-lg text-sm font-semibold
+                   cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all select-none"
+        onClick={onDownload}
+      >
+        📄 Download PDF
+      </div>
+
       <div className="flex gap-2">
         <div
-          className="flex-1 text-center py-2.5 bg-primary text-white rounded-lg text-sm font-semibold
-                     cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all select-none"
-          onClick={onDownload}
+          className="flex-1 text-center py-2.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold
+                     cursor-pointer hover:bg-gray-200 active:scale-[0.98] transition-all select-none"
+          onClick={handleCopy}
         >
-          📄 Download PDF
+          {copied ? "Copied ✓" : "📋 Copy summary"}
         </div>
         <div
           className="flex-1 text-center py-2.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold

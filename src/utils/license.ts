@@ -1,9 +1,22 @@
+import { getSettings } from "@/utils/settings";
+
 const LICENSE_STATUS_KEY = "licenseStatus";
 
 interface LicenseStatus {
   key: string;
   valid: boolean;
   checkedAt: number;
+}
+
+/**
+ * Single source of truth for "does this user have PaySlip Pro?".
+ * Reads the saved license key and validates it (cached for 24h). Every
+ * Pro-gated feature should call this rather than re-checking the license.
+ */
+export async function isPro(): Promise<boolean> {
+  const { licenseKey } = await getSettings();
+  if (!licenseKey) return false;
+  return validateLicense(licenseKey);
 }
 
 export async function validateLicense(key: string): Promise<boolean> {

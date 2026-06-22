@@ -1,4 +1,5 @@
-import { validateLicense } from "./license";
+import { validateLicense, isPro } from "./license";
+import { FREE_MONTHLY_LIMIT } from "@/config";
 
 export interface QuotaStore {
   count: number;
@@ -6,7 +7,7 @@ export interface QuotaStore {
 }
 
 const QUOTA_KEY = "quota";
-export const FREE_LIMIT = 2;
+export const FREE_LIMIT = FREE_MONTHLY_LIMIT;
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -20,6 +21,11 @@ export async function getQuota(): Promise<QuotaStore> {
 }
 
 export async function incrementQuota(): Promise<void> {
+  await incrementQuotaBy(1);
+}
+
+/** Adds `n` to the monthly usage counter (resetting first if the month rolled over). */
+export async function incrementQuotaBy(n: number): Promise<void> {
   const quota = await getQuota();
   const currentMonth = getCurrentMonth();
 
@@ -28,8 +34,45 @@ export async function incrementQuota(): Promise<void> {
     quota.resetMonth = currentMonth;
   }
 
-  quota.count += 1;
+  quota.count += Math.max(0, n);
   await chrome.storage.local.set({ [QUOTA_KEY]: quota });
+}
+
+/** Free payslips still available this month (FREE_LIMIT when the month has rolled over). */
+export async function getRemainingFree(): Promise<number> {
+  const quota = await getQuota();
+  const currentMonth = getCurrentMonth();
+  if (quota.resetMonth !== currentMonth) return FREE_LIMIT;
+  return Math.max(0, FREE_LIMIT - quota.count);
+}
+
+export interface QuotaDecision {
+  allowed: boolean;
+  pro: boolean;
+  /** Free payslips remaining after this operation (Infinity for Pro). */
+  remaining: number;
+}
+
+/**
+ * Single gate for "may the user create `count` payslip(s) right now?". Pro users
+ * are always allowed and never metered. For free users it checks the monthly
+ * allowance and, when allowed, consumes it. Used by single calc, CSV import, and
+ * batch pay runs so no path can silently bypass the freemium limit.
+ *
+ * Always re-checks the live license (not cached UI state) to avoid false paywalls.
+ */
+export async function consumeQuota(count: number): Promise<QuotaDecision> {
+  if (await isPro()) {
+    return { allowed: true, pro: true, remaining: Infinity };
+  }
+
+  const remaining = await getRemainingFree();
+  if (count > remaining) {
+    return { allowed: false, pro: false, remaining };
+  }
+
+  await incrementQuotaBy(count);
+  return { allowed: true, pro: false, remaining: remaining - count };
 }
 
 export async function isOverLimit(licenseKey: string): Promise<boolean> {
