@@ -6,7 +6,7 @@ import {
   saveSettings,
   type AppSettings,
 } from "@/utils/settings";
-import { validateLicense } from "@/utils/license";
+import { activateOrValidate, deactivateLicense } from "@/utils/license";
 import {
   clearPayslips,
   clearTemplates,
@@ -75,9 +75,25 @@ export default function SettingsPanel() {
 
   const handleVerify = async () => {
     setLicenseStatus("verifying");
-    const isValid = await validateLicense(settings.licenseKey);
-    setLicenseStatus(isValid ? "valid" : "invalid");
-    if (isValid) refreshPro();
+    setErrorMessage("");
+    const result = await activateOrValidate(settings.licenseKey.trim());
+    setLicenseStatus(result.ok ? "valid" : "invalid");
+    if (result.ok) {
+      refreshPro();
+      setStatusMessage("License active on this device.");
+    } else if (result.error) {
+      setErrorMessage(result.error);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (!confirm("Release this device's activation so the key can be used on another device?")) return;
+    await deactivateLicense();
+    update("licenseKey", "");
+    await saveSettings({ ...settings, licenseKey: "" });
+    setLicenseStatus("idle");
+    refreshPro();
+    setStatusMessage("Deactivated on this device.");
   };
 
   const handleExportData = async () => {
@@ -253,17 +269,25 @@ export default function SettingsPanel() {
           placeholder="XXXX-XXXX-XXXX-XXXX"
         />
         {settings.licenseKey && (
-          <div className="mt-2 flex items-center justify-between">
-            <button
-              onClick={handleVerify}
-              disabled={licenseStatus === "verifying"}
-              className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-50 transition-colors"
-            >
-              {licenseStatus === "verifying" ? "Verifying..." : "Verify License"}
-            </button>
-            {licenseStatus === "valid" && <span className="text-xs font-bold text-success">✓ Active</span>}
-            {licenseStatus === "invalid" && <span className="text-xs font-bold text-danger">✗ Invalid</span>}
-          </div>
+          <>
+            <div className="mt-2 flex items-center justify-between">
+              <button
+                onClick={handleVerify}
+                disabled={licenseStatus === "verifying"}
+                className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-50 transition-colors"
+              >
+                {licenseStatus === "verifying" ? "Activating…" : "Activate / Verify on this device"}
+              </button>
+              {licenseStatus === "valid" && <span className="text-xs font-bold text-success">✓ Active</span>}
+              {licenseStatus === "invalid" && <span className="text-xs font-bold text-danger">✗ Invalid</span>}
+            </div>
+            <div className="mt-1 flex items-center justify-between">
+              <p className="text-[10px] text-gray-400">Each key works on a limited number of devices.</p>
+              <button onClick={handleDeactivate} className="text-[10px] text-danger hover:underline">
+                Deactivate this device
+              </button>
+            </div>
+          </>
         )}
       </div>
 

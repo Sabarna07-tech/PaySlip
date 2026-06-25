@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { validateLicense } from "@/utils/license";
+import { activateOrValidate } from "@/utils/license";
 import { getSettings, saveSettings } from "@/utils/settings";
 import type { Payslip } from "@/types";
 import { LS_CHECKOUT_URL, PRO_BENEFITS, PRO_PRICE_LABEL, FREE_MONTHLY_LIMIT } from "@/config";
@@ -25,20 +25,19 @@ export default function UpgradeModal({ onClose, pendingPayslip, onActivated, rea
     setLoading(true);
     setError("");
 
-    const isValid = await validateLicense(key);
+    const result = await activateOrValidate(key.trim());
 
-    if (isValid) {
+    if (result.ok) {
       const settings = await getSettings();
-      settings.licenseKey = key;
+      settings.licenseKey = key.trim();
       await saveSettings(settings);
-      await chrome.storage.local.remove("licenseStatus");
 
       onClose();
       if (pendingPayslip) {
         onActivated(pendingPayslip);
       }
     } else {
-      setError("Invalid license key");
+      setError(result.error || "Invalid license key");
     }
     setLoading(false);
   };

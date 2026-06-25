@@ -155,7 +155,14 @@ Then load the generated dev output folder as an unpacked extension. Changes will
 
 ## Standalone Web App
 
-PaySlip ships in **two flavours from one codebase**: the Chrome extension and a standalone web app. The app detects at runtime whether it's running inside the extension; if not, it renders a full-screen sidebar layout instead of the compact popup. Pro subscribers can be pointed to the hosted web app for a roomier workspace (the "Open the full web workspace" card on the extension's Home tab links to `WEB_APP_URL` in [`src/config.ts`](src/config.ts)).
+PaySlip ships in **two flavours from one codebase**: the Chrome extension and a standalone web app. The app detects at runtime whether it's running inside the extension; if not, it renders a **landing page** first and then a full-screen sidebar layout (instead of the compact popup).
+
+**Flow:**
+- Visiting the hosted URL shows the **landing page** → "Launch app" enters the workspace (remembered in `localStorage`); "Add to Chrome" → your store listing (`CHROME_STORE_URL`).
+- **Installing the extension** opens the landing page automatically (onboarding) via the background service worker.
+- Pro users also get an "Open the full web workspace" card on the extension's Home tab (→ `WEB_APP_URL`).
+
+Set `WEB_APP_URL` and `CHROME_STORE_URL` in [`src/config.ts`](src/config.ts) to your deployed web URL and Chrome Web Store listing.
 
 ```bash
 npm run dev:web        # web app dev server (http://localhost:5174)
@@ -191,6 +198,12 @@ All store-listing fields (name, summary, full description), the single-purpose s
 ---
 
 ## Changelog
+
+### v1.4.1 (2026-06-25)
+- **Landing page + onboarding**: the web app root is now a marketing landing page ([Landing.tsx](src/popup/components/Landing.tsx)) — hero, feature grid, free-vs-pro, and "Add to Chrome" / "Launch app" CTAs. Clicking Launch enters the workspace (remembered via `localStorage`). A new **background service worker** ([background.ts](src/background.ts)) opens this landing page automatically when the extension is first installed. No new permissions (`chrome.tabs.create` with a URL needs none).
+- **Anti-sharing licensing**: keys are now bound to devices via Lemon Squeezy's activation API (`activate`/`validate`/`deactivate`). A per-key **activation limit** (set on the product, 2–3 recommended) caps how many devices one key works on; Settings has a "Deactivate this device" control to move a key. ([license.ts](src/utils/license.ts))
+- **Modern web UI**: replaced emoji nav icons with a clean inline SVG icon set ([icons.tsx](src/popup/components/icons.tsx)); redesigned the web app shell (branded sidebar, Pro upsell, responsive top-nav on mobile, footer); modernized the dashboard (icon KPI cards, refined trend/department cards, a proper empty state).
+- **Tests**: 46 total (added activation-flow + landing/app render coverage).
 
 ### v1.4.0 (2026-06-22)
 - **Standalone web app**: same codebase now builds a full-screen web app (`dist-web/`) with a sidebar layout, alongside the extension. Runtime platform detection ([`platform.ts`](src/utils/platform.ts)) switches layouts automatically. Pro users get an "Open the full web workspace" link in the extension.

@@ -119,13 +119,15 @@ current government rules before disbursing salaries.
 Chrome dropped its own paid-extension payments, so Pro is sold through **Lemon Squeezy** (handles global payments, GST/VAT invoicing, and license keys).
 
 1. Create a Lemon Squeezy store and a **"PaySlip Pro"** product that issues **license keys**.
-2. Copy your store URL and (optionally) the product checkout URL into [`src/config.ts`](src/config.ts):
+2. **Set the activation limit** on the product (License keys → "Activation limit") to **2–3**. This is the anti-sharing control: each key only works on that many devices. The app activates a key per device and refuses extra ones.
+3. Copy your store URL and (optionally) the product checkout URL into [`src/config.ts`](src/config.ts):
    - `LS_STORE_URL`, `LS_CHECKOUT_URL`
-3. Adjust the price label (`PRO_PRICE_LABEL`) and the free monthly limit (`FREE_MONTHLY_LIMIT`) in the same file if needed.
-4. Rebuild (`npm run build`) so the new URLs ship in the bundle.
+4. Adjust the price label (`PRO_PRICE_LABEL`) and the free monthly limit (`FREE_MONTHLY_LIMIT`) in the same file if needed.
+5. Rebuild (`npm run build`) so the new URLs ship in the bundle.
 
 Users buy a key on Lemon Squeezy, paste it into the upgrade screen or Settings, and the
-extension validates it against `api.lemonsqueezy.com` (cached for 24h).
+extension **activates** it against `api.lemonsqueezy.com` for that device (cached for 24h).
+A user can release a device via **Settings → "Deactivate this device"** to move their key.
 
 ---
 

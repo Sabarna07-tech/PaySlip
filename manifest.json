@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PaySlip — Indian Payroll & Salary Slip Calculator",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Indian salary & payslip calculator — PF, ESI, TDS, professional PDF payslips, bulk export & annual reports. Private & local-first.",
   "minimum_chrome_version": "100",
   "action": {
@@ -11,6 +11,10 @@
       "48": "icons/icon-48.png",
       "128": "icons/icon-128.png"
     }
+  },
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
   },
   "icons": {
     "16": "icons/icon-16.png",

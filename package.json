@@ -1,6 +1,6 @@
 {
   "name": "payslip-mini-payroll-calculator",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "description": "Indian salary & payslip calculator Chrome extension with PF/ESI/TDS, PDF payslips, bulk export and annual reports.",
   "type": "module",
